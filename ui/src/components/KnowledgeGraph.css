@@ -1,0 +1,122 @@
+/**
+ * Knowledge Graph Styles
+ */
+
+.knowledge-graph {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.graph-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.graph-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.node-count {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--color-text-muted);
+    padding: 2px 8px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-full);
+}
+
+.graph-controls {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.control-btn:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-light);
+}
+
+.graph-container {
+    flex: 1;
+    min-height: 0;
+}
+
+.graph-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+    text-align: center;
+    padding: var(--spacing-xl);
+}
+
+.graph-empty h3 {
+    margin: var(--spacing-md) 0 var(--spacing-xs);
+    font-size: 14px;
+    color: var(--color-text-secondary);
+}
+
+.graph-empty p {
+    margin: 0;
+    font-size: 12px;
+    max-width: 200px;
+}
+
+.graph-legend {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border-top: 1px solid var(--color-border-subtle);
+    overflow-x: auto;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend-label {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+}

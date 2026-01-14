@@ -1,0 +1,56 @@
+/**
+ * Graph Page Styles
+ */
+
+.graph-page {
+    padding: var(--spacing-xl);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.graph-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.graph-page-header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.graph-page-header .subtitle {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.demo-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.demo-toggle input {
+    accent-color: var(--color-accent-primary);
+}
+
+.graph-wrapper {
+    height: calc(100vh - 200px);
+    min-height: 500px;
+}
+
+.graph-wrapper .knowledge-graph {
+    height: 100%;
+}

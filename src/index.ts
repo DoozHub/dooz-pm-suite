@@ -14,6 +14,10 @@ import { intentsRoutes } from './routes/intents';
 import { decisionsRoutes } from './routes/decisions';
 import { ingestionRoutes } from './routes/ingestion';
 import { graphRoutes } from './routes/graph';
+import { assumptionsRoutes } from './routes/assumptions';
+import { risksRoutes } from './routes/risks';
+import { tasksRoutes } from './routes/tasks';
+import { edgesRoutes } from './routes/edges';
 import { sdkContext, isSdkConfigured } from './middleware/sdk';
 import type { Tenant } from '@dooz/sdk';
 
@@ -53,7 +57,7 @@ app.get('/health', (c) => {
     return c.json({
         status: 'ok',
         service: 'dooz-pm-suite',
-        version: '0.1.0',
+        version: '0.2.0',
         timestamp: new Date().toISOString(),
     });
 });
@@ -67,6 +71,10 @@ app.get('/api', (c) => {
         endpoints: {
             intents: '/api/intents',
             decisions: '/api/decisions',
+            assumptions: '/api/assumptions',
+            risks: '/api/risks',
+            tasks: '/api/tasks',
+            edges: '/api/edges',
             ingestion: '/api/ingestion',
             graph: '/api/graph',
         },
@@ -76,6 +84,10 @@ app.get('/api', (c) => {
 // Mount route modules
 app.route('/api/intents', intentsRoutes);
 app.route('/api/decisions', decisionsRoutes);
+app.route('/api/assumptions', assumptionsRoutes);
+app.route('/api/risks', risksRoutes);
+app.route('/api/tasks', tasksRoutes);
+app.route('/api/edges', edgesRoutes);
 app.route('/api/ingestion', ingestionRoutes);
 app.route('/api/graph', graphRoutes);
 
