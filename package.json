@@ -14,6 +14,8 @@
         "db:studio": "drizzle-kit studio"
     },
     "dependencies": {
+        "@dooz/ai-router": "file:../dooz-ai-router",
+        "@dooz/sdk": "file:../dooz-bun-sdk",
         "hono": "^4.6.0",
         "drizzle-orm": "^0.35.0",
         "postgres": "^3.4.0",

@@ -5,6 +5,8 @@
     "": {
       "name": "dooz-pm-suite",
       "dependencies": {
+        "@dooz/ai-router": "file:../dooz-ai-router",
+        "@dooz/sdk": "file:../dooz-bun-sdk",
         "better-sqlite3": "^11.0.0",
         "drizzle-orm": "^0.35.0",
         "hono": "^4.6.0",
@@ -21,6 +23,10 @@
     },
   },
   "packages": {
+    "@dooz/ai-router": ["@dooz/ai-router@file:../dooz-ai-router", { "dependencies": { "zod": "^3.23.0" }, "devDependencies": { "@types/bun": "latest", "typescript": "^5.6.0" } }],
+
+    "@dooz/sdk": ["@dooz/sdk@file:../dooz-bun-sdk", { "devDependencies": { "@types/bun": "latest", "typescript": "^5.0.0" } }],
+
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
 
     "@esbuild-kit/core-utils": ["@esbuild-kit/core-utils@3.3.2", "", { "dependencies": { "esbuild": "~0.18.20", "source-map-support": "^0.5.21" } }, "sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ=="],

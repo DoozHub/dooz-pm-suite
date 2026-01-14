@@ -14,12 +14,16 @@ import { intentsRoutes } from './routes/intents';
 import { decisionsRoutes } from './routes/decisions';
 import { ingestionRoutes } from './routes/ingestion';
 import { graphRoutes } from './routes/graph';
+import { sdkContext, isSdkConfigured } from './middleware/sdk';
+import type { Tenant } from '@dooz/sdk';
 
 // Types
 export type Env = {
     Variables: {
         tenantId: string;
         userId: string;
+        tenant?: Tenant;
+        dooz?: unknown;
     };
 };
 
@@ -37,17 +41,8 @@ app.use('*', cors({
     credentials: true,
 }));
 
-// Tenant context middleware (placeholder - will integrate with @dooz/sdk)
-app.use('/api/*', async (c, next) => {
-    // TODO: Integrate with @dooz/sdk for real tenant resolution
-    const tenantId = c.req.header('X-Tenant-ID') || 'dev-tenant';
-    const userId = c.req.header('X-User-ID') || 'dev-user';
-
-    c.set('tenantId', tenantId);
-    c.set('userId', userId);
-
-    await next();
-});
+// SDK context middleware - resolves tenant and user
+app.use('/api/*', sdkContext());
 
 // =============================================================================
 // ROUTES

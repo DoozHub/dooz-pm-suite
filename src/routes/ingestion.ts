@@ -6,6 +6,8 @@
 
 import { Hono } from 'hono';
 import { IngestionRequestSchema } from '../lib/types';
+import { ingestionService } from '../services/ingestion.service';
+import { isAiAvailable } from '../ai';
 
 type Env = {
     Variables: {
@@ -15,6 +17,16 @@ type Env = {
 };
 
 export const ingestionRoutes = new Hono<Env>();
+
+// Check AI availability
+ingestionRoutes.get('/status', async (c) => {
+    return c.json({
+        aiAvailable: isAiAvailable(),
+        message: isAiAvailable()
+            ? 'AI router is configured and ready'
+            : 'AI not configured. Set OPENROUTER_API_KEY or OLLAMA_ENABLED=true',
+    });
+});
 
 // Upload and process content for AI extraction
 ingestionRoutes.post('/', async (c) => {
@@ -28,38 +40,53 @@ ingestionRoutes.post('/', async (c) => {
         return c.json({ error: 'Validation failed', details: parsed.error.issues }, 400);
     }
 
-    // TODO: Integrate with @dooz/ai-router for extraction
-    // For now, return a placeholder response
+    const result = await ingestionService.process(tenantId, userId, parsed.data);
+
+    if (result.error) {
+        return c.json({
+            message: 'Processing completed with issues',
+            error: result.error,
+            proposals: result.proposals,
+        }, 202);
+    }
+
     return c.json({
-        message: 'Ingestion queued for processing',
+        message: `Extracted ${result.proposals.length} proposals for review`,
         data: {
-            intentId: parsed.data.intentId || 'new-intent-candidate',
+            proposals: result.proposals,
             sourceType: parsed.data.sourceType,
-            status: 'processing',
-            proposals: [],  // Will be populated by AI extraction
+            intentId: parsed.data.intentId,
         },
-    }, 202);
+    }, 201);
 });
 
 // Get pending AI proposals for review
 ingestionRoutes.get('/proposals', async (c) => {
-    const tenantId = c.get('tenantId');
     const intentId = c.req.query('intentId');
 
-    // TODO: Fetch from ai_proposals table
+    if (!intentId) {
+        return c.json({ error: 'intentId query parameter required' }, 400);
+    }
+
+    const proposals = await ingestionService.getPendingProposals(intentId);
+
     return c.json({
-        data: [],
-        message: 'AI proposal review endpoint - implementation pending @dooz/ai-router',
+        data: proposals,
+        count: proposals.length,
     });
 });
 
 // Accept an AI proposal (human confirmation)
 ingestionRoutes.post('/proposals/:id/accept', async (c) => {
-    const tenantId = c.get('tenantId');
     const userId = c.get('userId');
     const proposalId = c.req.param('id');
 
-    // TODO: Update proposal status and create corresponding entity
+    const result = await ingestionService.acceptProposal(proposalId, userId);
+
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
     return c.json({
         message: 'Proposal accepted',
         proposalId,
@@ -68,10 +95,15 @@ ingestionRoutes.post('/proposals/:id/accept', async (c) => {
 
 // Reject an AI proposal
 ingestionRoutes.post('/proposals/:id/reject', async (c) => {
-    const tenantId = c.get('tenantId');
+    const userId = c.get('userId');
     const proposalId = c.req.param('id');
 
-    // TODO: Update proposal status
+    const result = await ingestionService.rejectProposal(proposalId, userId);
+
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
     return c.json({
         message: 'Proposal rejected',
         proposalId,
@@ -80,12 +112,17 @@ ingestionRoutes.post('/proposals/:id/reject', async (c) => {
 
 // Park an AI proposal for later
 ingestionRoutes.post('/proposals/:id/park', async (c) => {
-    const tenantId = c.get('tenantId');
+    const userId = c.get('userId');
     const proposalId = c.req.param('id');
 
-    // TODO: Update proposal status
+    const result = await ingestionService.parkProposal(proposalId, userId);
+
+    if (!result.success) {
+        return c.json({ error: result.error }, 400);
+    }
+
     return c.json({
-        message: 'Proposal parked',
+        message: 'Proposal parked for later',
         proposalId,
     });
 });
