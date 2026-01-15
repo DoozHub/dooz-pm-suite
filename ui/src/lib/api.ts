@@ -155,13 +155,63 @@ export const api = {
     listAssumptions: (intentId: string) =>
         request<Assumption[]>(`/api/assumptions/intent/${intentId}`),
 
+    createAssumption: (data: {
+        intentId: string;
+        assumptionStatement: string;
+        confidenceLevel?: number;
+    }) =>
+        request<Assumption>('/api/assumptions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    invalidateAssumption: (id: string) =>
+        request<Assumption>(`/api/assumptions/${id}/invalidate`, {
+            method: 'POST',
+        }),
+
     // Risks
     listRisks: (intentId: string) =>
         request<Risk[]>(`/api/risks/intent/${intentId}`),
 
+    createRisk: (data: {
+        intentId: string;
+        riskStatement: string;
+        severity?: 'low' | 'medium' | 'high' | 'critical';
+        likelihood?: string;
+        mitigationNotes?: string;
+    }) =>
+        request<Risk>('/api/risks', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    mitigateRisk: (id: string, notes: string) =>
+        request<Risk>(`/api/risks/${id}/mitigate`, {
+            method: 'POST',
+            body: JSON.stringify({ mitigationNotes: notes }),
+        }),
+
     // Tasks
     listTasks: (intentId: string) =>
         request<Task[]>(`/api/tasks/intent/${intentId}`),
+
+    createTask: (data: {
+        intentId: string;
+        title: string;
+        description?: string;
+        owner?: string;
+    }) =>
+        request<Task>('/api/tasks', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    updateTaskStatus: (id: string, status: string) =>
+        request<Task>(`/api/tasks/${id}/status`, {
+            method: 'POST',
+            body: JSON.stringify({ status }),
+        }),
 
     // Intent Stats (aggregated)
     getIntentStats: async (intentId: string): Promise<ApiResponse<IntentStats>> => {

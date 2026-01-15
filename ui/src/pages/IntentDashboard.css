@@ -477,3 +477,137 @@
 .stat-card:hover {
     background: var(--color-bg-secondary);
 }
+
+/* Entity List (shared for assumptions, risks) */
+.entity-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.entity-card {
+    padding: var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--color-accent-primary);
+}
+
+.entity-card.invalidated {
+    border-left-color: var(--color-text-muted);
+    opacity: 0.6;
+}
+
+.entity-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+}
+
+.entity-statement {
+    margin: 0 0 var(--spacing-xs);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    line-height: 1.5;
+}
+
+.entity-meta {
+    font-size: 11px;
+    color: var(--color-text-muted);
+}
+
+.confidence-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent-secondary);
+    color: white;
+}
+
+/* Risk severity badges */
+.severity-badge {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+.severity-badge.low { background: #4caf50; color: white; }
+.severity-badge.medium { background: #ff9800; color: white; }
+.severity-badge.high { background: #f44336; color: white; }
+.severity-badge.critical { background: #9c27b0; color: white; }
+
+.risk-low { border-left-color: #4caf50; }
+.risk-medium { border-left-color: #ff9800; }
+.risk-high { border-left-color: #f44336; }
+.risk-critical { border-left-color: #9c27b0; }
+
+.mitigation-notes {
+    margin: var(--spacing-sm) 0 0;
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    padding: var(--spacing-xs);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+/* Task List */
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.task-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.task-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-title {
+    font-size: 14px;
+    color: var(--color-text-primary);
+}
+
+.task-title.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.task-description {
+    margin: var(--spacing-xs) 0 0;
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+
+.task-owner {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    padding: 2px 6px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+/* Section styling shared */
+.assumptions-section,
+.risks-section,
+.tasks-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}

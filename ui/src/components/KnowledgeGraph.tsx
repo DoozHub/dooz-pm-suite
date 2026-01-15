@@ -4,7 +4,7 @@
  * Interactive graph visualization using Cytoscape.js
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import cytoscape from 'cytoscape';
 import type { ElementDefinition, Core } from 'cytoscape';
 import { motion } from 'framer-motion';
@@ -53,7 +53,6 @@ const EDGE_COLORS: Record<string, string> = {
 export function KnowledgeGraph({ nodes, edges, onNodeClick, onRefresh }: KnowledgeGraphProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const cyRef = useRef<Core | null>(null);
-    const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -141,7 +140,6 @@ export function KnowledgeGraph({ nodes, edges, onNodeClick, onRefresh }: Knowled
         cyRef.current.on('tap', 'node', (evt) => {
             const nodeId = evt.target.id();
             const nodeData = nodes.find((n) => n.id === nodeId);
-            setSelectedNode(nodeId);
             if (nodeData && onNodeClick) {
                 onNodeClick(nodeData);
             }
@@ -149,7 +147,7 @@ export function KnowledgeGraph({ nodes, edges, onNodeClick, onRefresh }: Knowled
 
         cyRef.current.on('tap', (evt) => {
             if (evt.target === cyRef.current) {
-                setSelectedNode(null);
+                // Click on empty area - could add deselect logic here
             }
         });
 

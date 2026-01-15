@@ -189,11 +189,18 @@ function IntentDetailView({
     const [stats, setStats] = useState({ decisions: 0, assumptions: 0, risks: 0, tasks: 0 });
     const [showDecisionForm, setShowDecisionForm] = useState(false);
     const [decisions, setDecisions] = useState<import('../lib/api').Decision[]>([]);
-    const [activeTab, setActiveTab] = useState<'overview' | 'decisions' | 'ledger'>('overview');
+    const [assumptions, setAssumptions] = useState<import('../lib/api').Assumption[]>([]);
+    const [risks, setRisks] = useState<import('../lib/api').Risk[]>([]);
+    const [tasks, setTasks] = useState<import('../lib/api').Task[]>([]);
+    const [activeTab, setActiveTab] = useState<'overview' | 'decisions' | 'assumptions' | 'risks' | 'tasks'>('overview');
+    const [_showAddForm, setShowAddForm] = useState<string | null>(null);
 
     useEffect(() => {
         loadStats();
         loadDecisions();
+        loadAssumptions();
+        loadRisks();
+        loadTasks();
     }, [intent.id]);
 
     const loadStats = async () => {
@@ -207,6 +214,27 @@ function IntentDetailView({
         const result = await api.listDecisions(intent.id);
         if (result.data) {
             setDecisions(result.data);
+        }
+    };
+
+    const loadAssumptions = async () => {
+        const result = await api.listAssumptions(intent.id);
+        if (result.data) {
+            setAssumptions(result.data);
+        }
+    };
+
+    const loadRisks = async () => {
+        const result = await api.listRisks(intent.id);
+        if (result.data) {
+            setRisks(result.data);
+        }
+    };
+
+    const loadTasks = async () => {
+        const result = await api.listTasks(intent.id);
+        if (result.data) {
+            setTasks(result.data);
         }
     };
 
@@ -280,21 +308,21 @@ function IntentDetailView({
                         <span className="stat-label">Decisions</span>
                     </div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card" onClick={() => setActiveTab('assumptions')}>
                     <Brain size={20} />
                     <div className="stat-info">
                         <span className="stat-value">{stats.assumptions}</span>
                         <span className="stat-label">Assumptions</span>
                     </div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card" onClick={() => setActiveTab('risks')}>
                     <AlertTriangle size={20} />
                     <div className="stat-info">
                         <span className="stat-value">{stats.risks}</span>
                         <span className="stat-label">Risks</span>
                     </div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card" onClick={() => setActiveTab('tasks')}>
                     <CheckSquare size={20} />
                     <div className="stat-info">
                         <span className="stat-value">{stats.tasks}</span>
@@ -316,6 +344,24 @@ function IntentDetailView({
                     onClick={() => setActiveTab('decisions')}
                 >
                     Decisions
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'assumptions' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('assumptions')}
+                >
+                    Assumptions
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'risks' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('risks')}
+                >
+                    Risks
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('tasks')}
+                >
+                    Tasks
                 </button>
             </div>
 
@@ -360,6 +406,123 @@ function IntentDetailView({
                                     </div>
                                     <p className="decision-statement">{d.decisionStatement}</p>
                                     <p className="decision-choice"><strong>Choice:</strong> {d.finalChoice}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Assumptions Tab */}
+            {activeTab === 'assumptions' && (
+                <div className="assumptions-section">
+                    <div className="section-header">
+                        <h3>Assumptions</h3>
+                        <motion.button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setShowAddForm('assumption')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Plus size={14} />
+                            Add Assumption
+                        </motion.button>
+                    </div>
+                    {assumptions.length === 0 ? (
+                        <p className="empty-text">No assumptions yet. Add your first assumption.</p>
+                    ) : (
+                        <div className="entity-list">
+                            {assumptions.map((a) => (
+                                <div key={a.id} className={`entity-card ${a.status}`}>
+                                    <div className="entity-header">
+                                        <span className={`status-badge ${a.status}`}>{a.status}</span>
+                                        {a.confidenceLevel && (
+                                            <span className="confidence-badge">{Math.round(a.confidenceLevel * 100)}% confident</span>
+                                        )}
+                                    </div>
+                                    <p className="entity-statement">{a.assumptionStatement}</p>
+                                    <div className="entity-meta">
+                                        <span>Source: {a.createdFrom || 'human'}</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Risks Tab */}
+            {activeTab === 'risks' && (
+                <div className="risks-section">
+                    <div className="section-header">
+                        <h3>Risk Register</h3>
+                        <motion.button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setShowAddForm('risk')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Plus size={14} />
+                            Add Risk
+                        </motion.button>
+                    </div>
+                    {risks.length === 0 ? (
+                        <p className="empty-text">No risks identified yet.</p>
+                    ) : (
+                        <div className="entity-list">
+                            {risks.map((r) => (
+                                <div key={r.id} className={`entity-card risk-${r.severity || 'medium'}`}>
+                                    <div className="entity-header">
+                                        <span className={`severity-badge ${r.severity || 'medium'}`}>{r.severity || 'medium'}</span>
+                                        <span className={`status-badge ${r.status}`}>{r.status}</span>
+                                    </div>
+                                    <p className="entity-statement">{r.riskStatement}</p>
+                                    {r.mitigationNotes && (
+                                        <p className="mitigation-notes"><strong>Mitigation:</strong> {r.mitigationNotes}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Tasks Tab */}
+            {activeTab === 'tasks' && (
+                <div className="tasks-section">
+                    <div className="section-header">
+                        <h3>Tasks</h3>
+                        <motion.button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setShowAddForm('task')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Plus size={14} />
+                            Add Task
+                        </motion.button>
+                    </div>
+                    {tasks.length === 0 ? (
+                        <p className="empty-text">No tasks yet. Break down the work into tasks.</p>
+                    ) : (
+                        <div className="task-list">
+                            {tasks.map((t) => (
+                                <div key={t.id} className={`task-card ${t.status}`}>
+                                    <div className="task-check">
+                                        <input
+                                            type="checkbox"
+                                            checked={t.status === 'done'}
+                                            onChange={() => {
+                                                const newStatus = t.status === 'done' ? 'todo' : 'done';
+                                                api.updateTaskStatus(t.id, newStatus).then(() => loadTasks());
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="task-content">
+                                        <span className={`task-title ${t.status === 'done' ? 'completed' : ''}`}>{t.title}</span>
+                                        {t.description && <p className="task-description">{t.description}</p>}
+                                    </div>
+                                    {t.owner && <span className="task-owner">{t.owner}</span>}
                                 </div>
                             ))}
                         </div>
