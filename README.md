@@ -1,5 +1,9 @@
 # Dooz PM Suite
 
+dooz-pm-suite is a Bun + Hono API server that provides a project management backend centered on intents (purpose-driven artifacts) rather than tasks. It exposes REST endpoints for managing intents with state transitions, an append-only decision ledger, assumptions, risks, tasks, and a knowledge graph. The server uses Drizzle ORM with SQLite (development) or PostgreSQL (production) and optionally integrates with the Dooz SDK for tenant context.
+
+---
+
 > AI-Era Project Management Control Plane
 
 **Human-in-the-loop intent management, decision tracking, and organizational memory.**
