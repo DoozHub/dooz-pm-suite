@@ -54,6 +54,58 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<ApiR
     }
 }
 
+export interface Decision {
+    id: string;
+    intentId: string | null;
+    decisionStatement: string;
+    optionsConsidered: string | null; // JSON array
+    finalChoice: string;
+    humanApprover: string;
+    aiInputsReferenced: string | null; // JSON array
+    decisionTimestamp: string | null;
+    revisitCondition: string | null;
+    status: 'active' | 'superseded';
+}
+
+export interface Assumption {
+    id: string;
+    intentId: string | null;
+    assumptionStatement: string;
+    confidenceLevel: number | null;
+    createdFrom: 'human' | 'ai' | null;
+    createdAt: string | null;
+    status: 'active' | 'invalidated';
+}
+
+export interface Risk {
+    id: string;
+    intentId: string | null;
+    riskStatement: string;
+    severity: 'low' | 'medium' | 'high' | 'critical' | null;
+    likelihood: string | null;
+    createdFrom: 'human' | 'ai' | null;
+    mitigationNotes: string | null;
+    status: string;
+}
+
+export interface Task {
+    id: string;
+    intentId: string | null;
+    decisionId: string | null;
+    title: string;
+    description: string | null;
+    owner: string | null;
+    status: string;
+    createdAt: string | null;
+}
+
+export interface IntentStats {
+    decisions: number;
+    assumptions: number;
+    risks: number;
+    tasks: number;
+}
+
 export const api = {
     // Health
     health: () => request<{ status: string; version: string }>('/health'),
@@ -79,6 +131,55 @@ export const api = {
             method: 'POST',
             body: JSON.stringify({ state }),
         }),
+
+    // Decisions
+    listDecisions: (intentId: string) =>
+        request<Decision[]>(`/api/decisions/intent/${intentId}`),
+
+    getDecisionLedger: (intentId: string) =>
+        request<Decision[]>(`/api/decisions/ledger/${intentId}`),
+
+    commitDecision: (data: {
+        intentId: string;
+        decisionStatement: string;
+        finalChoice: string;
+        optionsConsidered?: string[];
+        revisitCondition?: string;
+    }) =>
+        request<Decision>('/api/decisions', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // Assumptions
+    listAssumptions: (intentId: string) =>
+        request<Assumption[]>(`/api/assumptions/intent/${intentId}`),
+
+    // Risks
+    listRisks: (intentId: string) =>
+        request<Risk[]>(`/api/risks/intent/${intentId}`),
+
+    // Tasks
+    listTasks: (intentId: string) =>
+        request<Task[]>(`/api/tasks/intent/${intentId}`),
+
+    // Intent Stats (aggregated)
+    getIntentStats: async (intentId: string): Promise<ApiResponse<IntentStats>> => {
+        const [decisions, assumptions, risks, tasks] = await Promise.all([
+            request<Decision[]>(`/api/decisions/intent/${intentId}`),
+            request<Assumption[]>(`/api/assumptions/intent/${intentId}`),
+            request<Risk[]>(`/api/risks/intent/${intentId}`),
+            request<Task[]>(`/api/tasks/intent/${intentId}`),
+        ]);
+        return {
+            data: {
+                decisions: decisions.data?.length || 0,
+                assumptions: assumptions.data?.length || 0,
+                risks: risks.data?.length || 0,
+                tasks: tasks.data?.length || 0,
+            },
+        };
+    },
 
     // Ingestion
     ingestContent: (data: { intentId?: string; sourceType: string; content: string }) =>

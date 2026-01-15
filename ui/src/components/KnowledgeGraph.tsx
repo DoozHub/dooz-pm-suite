@@ -5,7 +5,8 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import cytoscape, { Core, ElementDefinition } from 'cytoscape';
+import cytoscape from 'cytoscape';
+import type { ElementDefinition, Core } from 'cytoscape';
 import { motion } from 'framer-motion';
 import { Network, ZoomIn, ZoomOut, Maximize2, RefreshCw } from 'lucide-react';
 import './KnowledgeGraph.css';

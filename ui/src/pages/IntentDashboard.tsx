@@ -4,7 +4,7 @@
  * Main dashboard for managing intents and their linked entities.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus,
@@ -178,12 +178,54 @@ export function IntentDashboard() {
 // Intent Detail View Component
 function IntentDetailView({
     intent,
-    onTransition
+    onTransition,
+    onDecisionCommit
 }: {
     intent: Intent;
     onTransition: (id: string, state: string) => void;
+    onDecisionCommit?: () => void;
 }) {
     const StateIcon = STATE_ICONS[intent.currentState as keyof typeof STATE_ICONS] || HelpCircle;
+    const [stats, setStats] = useState({ decisions: 0, assumptions: 0, risks: 0, tasks: 0 });
+    const [showDecisionForm, setShowDecisionForm] = useState(false);
+    const [decisions, setDecisions] = useState<import('../lib/api').Decision[]>([]);
+    const [activeTab, setActiveTab] = useState<'overview' | 'decisions' | 'ledger'>('overview');
+
+    useEffect(() => {
+        loadStats();
+        loadDecisions();
+    }, [intent.id]);
+
+    const loadStats = async () => {
+        const result = await api.getIntentStats(intent.id);
+        if (result.data) {
+            setStats(result.data);
+        }
+    };
+
+    const loadDecisions = async () => {
+        const result = await api.listDecisions(intent.id);
+        if (result.data) {
+            setDecisions(result.data);
+        }
+    };
+
+    const handleDecisionCommit = async (data: {
+        decisionStatement: string;
+        finalChoice: string;
+        optionsConsidered: string[];
+    }) => {
+        const result = await api.commitDecision({
+            intentId: intent.id,
+            ...data,
+        });
+        if (result.data) {
+            setDecisions([result.data, ...decisions]);
+            setStats({ ...stats, decisions: stats.decisions + 1 });
+            setShowDecisionForm(false);
+            onDecisionCommit?.();
+        }
+    };
 
     const getNextStates = (current: string): string[] => {
         const transitions: Record<string, string[]> = {
@@ -231,46 +273,109 @@ function IntentDetailView({
 
             {/* Stats Grid */}
             <div className="stats-grid">
-                <div className="stat-card">
+                <div className="stat-card" onClick={() => setActiveTab('decisions')}>
                     <GitBranch size={20} />
                     <div className="stat-info">
-                        <span className="stat-value">0</span>
+                        <span className="stat-value">{stats.decisions}</span>
                         <span className="stat-label">Decisions</span>
                     </div>
                 </div>
                 <div className="stat-card">
                     <Brain size={20} />
                     <div className="stat-info">
-                        <span className="stat-value">0</span>
+                        <span className="stat-value">{stats.assumptions}</span>
                         <span className="stat-label">Assumptions</span>
                     </div>
                 </div>
                 <div className="stat-card">
                     <AlertTriangle size={20} />
                     <div className="stat-info">
-                        <span className="stat-value">0</span>
+                        <span className="stat-value">{stats.risks}</span>
                         <span className="stat-label">Risks</span>
                     </div>
                 </div>
                 <div className="stat-card">
                     <CheckSquare size={20} />
                     <div className="stat-info">
-                        <span className="stat-value">0</span>
+                        <span className="stat-value">{stats.tasks}</span>
                         <span className="stat-label">Tasks</span>
                     </div>
                 </div>
             </div>
 
-            {/* Metadata */}
-            <div className="intent-metadata">
-                <div className="meta-item">
-                    <Clock size={14} />
-                    <span>Created: {intent.createdAt ? new Date(intent.createdAt).toLocaleDateString() : 'Unknown'}</span>
-                </div>
-                <div className="meta-item">
-                    <span>Created by: {intent.createdBy}</span>
-                </div>
+            {/* Tabs */}
+            <div className="detail-tabs">
+                <button
+                    className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('overview')}
+                >
+                    Overview
+                </button>
+                <button
+                    className={`tab-btn ${activeTab === 'decisions' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('decisions')}
+                >
+                    Decisions
+                </button>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === 'overview' && (
+                <div className="intent-metadata">
+                    <div className="meta-item">
+                        <Clock size={14} />
+                        <span>Created: {intent.createdAt ? new Date(intent.createdAt).toLocaleDateString() : 'Unknown'}</span>
+                    </div>
+                    <div className="meta-item">
+                        <span>Created by: {intent.createdBy}</span>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'decisions' && (
+                <div className="decisions-section">
+                    <div className="section-header">
+                        <h3>Decision Ledger</h3>
+                        <motion.button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setShowDecisionForm(true)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <Plus size={14} />
+                            Commit Decision
+                        </motion.button>
+                    </div>
+                    {decisions.length === 0 ? (
+                        <p className="empty-text">No decisions yet. Commit your first decision.</p>
+                    ) : (
+                        <div className="decision-list">
+                            {decisions.map((d) => (
+                                <div key={d.id} className={`decision-card ${d.status}`}>
+                                    <div className="decision-header">
+                                        <span className={`status-badge ${d.status}`}>{d.status}</span>
+                                        <span className="decision-date">
+                                            {d.decisionTimestamp ? new Date(d.decisionTimestamp).toLocaleDateString() : ''}
+                                        </span>
+                                    </div>
+                                    <p className="decision-statement">{d.decisionStatement}</p>
+                                    <p className="decision-choice"><strong>Choice:</strong> {d.finalChoice}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Decision Form Modal */}
+            <AnimatePresence>
+                {showDecisionForm && (
+                    <DecisionCommitModal
+                        onClose={() => setShowDecisionForm(false)}
+                        onCommit={handleDecisionCommit}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -343,3 +448,92 @@ function CreateIntentModal({
         </motion.div>
     );
 }
+
+// Decision Commit Modal
+function DecisionCommitModal({
+    onClose,
+    onCommit
+}: {
+    onClose: () => void;
+    onCommit: (data: { decisionStatement: string; finalChoice: string; optionsConsidered: string[] }) => void;
+}) {
+    const [decisionStatement, setDecisionStatement] = useState('');
+    const [finalChoice, setFinalChoice] = useState('');
+    const [optionsText, setOptionsText] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (decisionStatement.trim() && finalChoice.trim()) {
+            const optionsConsidered = optionsText
+                .split('\n')
+                .map(o => o.trim())
+                .filter(o => o.length > 0);
+            onCommit({ decisionStatement, finalChoice, optionsConsidered });
+        }
+    };
+
+    return (
+        <motion.div
+            className="modal-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+        >
+            <motion.div
+                className="modal glass-card decision-modal"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h2>Commit Decision</h2>
+                <p className="modal-subtitle">Decisions are immutable. Once committed, they cannot be edited - only superseded.</p>
+                <form onSubmit={handleSubmit}>
+                    <div className="form-group">
+                        <label>Decision Statement *</label>
+                        <textarea
+                            value={decisionStatement}
+                            onChange={(e) => setDecisionStatement(e.target.value)}
+                            placeholder="What was decided? Be specific and complete."
+                            rows={3}
+                            autoFocus
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Final Choice *</label>
+                        <input
+                            type="text"
+                            value={finalChoice}
+                            onChange={(e) => setFinalChoice(e.target.value)}
+                            placeholder="The specific option chosen"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Options Considered (one per line)</label>
+                        <textarea
+                            value={optionsText}
+                            onChange={(e) => setOptionsText(e.target.value)}
+                            placeholder="Option A&#10;Option B&#10;Option C"
+                            rows={3}
+                        />
+                    </div>
+                    <div className="modal-actions">
+                        <button type="button" className="btn btn-ghost" onClick={onClose}>
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn-primary"
+                            disabled={!decisionStatement.trim() || !finalChoice.trim()}
+                        >
+                            <GitBranch size={16} />
+                            Commit Decision
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
+        </motion.div>
+    );
+}
+
