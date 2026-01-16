@@ -18,6 +18,7 @@ import { assumptionsRoutes } from './routes/assumptions';
 import { risksRoutes } from './routes/risks';
 import { tasksRoutes } from './routes/tasks';
 import { edgesRoutes } from './routes/edges';
+import { insights } from './routes/insights';
 import { sdkContext, isSdkConfigured } from './middleware/sdk';
 import type { Tenant } from '@dooz/sdk';
 
@@ -77,6 +78,7 @@ app.get('/api', (c) => {
             edges: '/api/edges',
             ingestion: '/api/ingestion',
             graph: '/api/graph',
+            insights: '/api/insights',
         },
     });
 });
@@ -90,6 +92,7 @@ app.route('/api/tasks', tasksRoutes);
 app.route('/api/edges', edgesRoutes);
 app.route('/api/ingestion', ingestionRoutes);
 app.route('/api/graph', graphRoutes);
+app.route('/api/insights', insights);
 
 // =============================================================================
 // SERVER STARTUP
@@ -99,11 +102,11 @@ const port = Number(process.env.PORT) || 3000;
 
 console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║                    DOOZ PM SUITE                              ║
+║                    DOOZ PM SUITE                             ║
 ║         AI-Era Project Management Control Plane              ║
 ╠══════════════════════════════════════════════════════════════╣
-║  Server running at: http://localhost:${port}                    ║
-║  Environment: ${process.env.NODE_ENV || 'development'}                             ║
+║  Server running at: http://localhost:${port}                 ║
+║  Environment: ${process.env.NODE_ENV || 'development'}       ║
 ╚══════════════════════════════════════════════════════════════╝
 `);
 

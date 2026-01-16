@@ -118,7 +118,7 @@ export class IntentService {
             .update(intents)
             .set({
                 currentState: newState,
-                lastHumanReviewedAt: new Date(),
+                lastHumanReviewedAt: new Date().toISOString(),
             })
             .where(and(eq(intents.id, id), eq(intents.tenantId, tenantId)))
             .returning();
@@ -135,7 +135,7 @@ export class IntentService {
     static async markReviewed(tenantId: string, id: string): Promise<Intent | null> {
         const [updated] = await db
             .update(intents)
-            .set({ lastHumanReviewedAt: new Date() })
+            .set({ lastHumanReviewedAt: new Date().toISOString() })
             .where(and(eq(intents.id, id), eq(intents.tenantId, tenantId)))
             .returning();
 

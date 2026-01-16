@@ -20,9 +20,10 @@ export const ingestionRoutes = new Hono<Env>();
 
 // Check AI availability
 ingestionRoutes.get('/status', async (c) => {
+    const available = await isAiAvailable();
     return c.json({
-        aiAvailable: isAiAvailable(),
-        message: isAiAvailable()
+        aiAvailable: available,
+        message: available
             ? 'AI router is configured and ready'
             : 'AI not configured. Set OPENROUTER_API_KEY or OLLAMA_ENABLED=true',
     });

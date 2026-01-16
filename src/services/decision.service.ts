@@ -10,6 +10,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { db } from '../db';
 import { decisions, type Decision, type NewDecision } from '../db/schema';
 import type { CreateDecisionInput } from '../lib/types';
+import { getProvider, getProviderMode } from '../ai';
 
 export class DecisionService {
     /**
@@ -35,8 +36,22 @@ export class DecisionService {
 
         const [created] = await db.insert(decisions).values(newDecision).returning();
 
-        // TODO: Emit event to dooz-bridge when available
-        // await bridge.emit('pm.decision.committed', { decisionId: created.id, intentId: input.intentId });
+        // Sync to Brain if in Brain mode
+        if (getProviderMode() === 'brain') {
+            try {
+                const provider = getProvider();
+                await provider.storeMemory({
+                    scopeId: `pm-suite-${tenantId}`,
+                    title: `Decision: ${input.finalChoice}`,
+                    content: `## Decision\n${input.decisionStatement}\n\n## Final Choice\n${input.finalChoice}\n\n## Options Considered\n${(input.optionsConsidered || []).map(o => `- ${o}`).join('\n')}\n\n## Intent\n${input.intentId}`,
+                    bucketId: 'decisions',
+                });
+                console.log(`[Decision] Synced to Brain: ${created.id}`);
+            } catch (e) {
+                console.warn('[Decision] Brain sync failed:', e);
+                // Non-blocking - decision is still committed locally
+            }
+        }
 
         return created;
     }
