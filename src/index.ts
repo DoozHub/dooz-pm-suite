@@ -9,6 +9,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { timing } from 'hono/timing';
+import { errorHandler } from './lib/error-handler';
 
 import { intentsRoutes } from './routes/intents';
 import { decisionsRoutes } from './routes/decisions';
@@ -19,6 +20,7 @@ import { risksRoutes } from './routes/risks';
 import { tasksRoutes } from './routes/tasks';
 import { edgesRoutes } from './routes/edges';
 import { insights } from './routes/insights';
+import { brainWebhookRoutes } from './routes/brain-webhook';
 import { sdkContext, isSdkConfigured } from './middleware/sdk';
 import type { Tenant } from '@dooz/sdk';
 
@@ -39,10 +41,13 @@ const app = new Hono<Env>();
 // MIDDLEWARE
 // =============================================================================
 
+// Error handling (must be first)
+app.use('*', errorHandler());
+
 app.use('*', logger());
 app.use('*', timing());
 app.use('*', cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3333', 'http://localhost:5173'],
     credentials: true,
 }));
 
@@ -93,6 +98,9 @@ app.route('/api/edges', edgesRoutes);
 app.route('/api/ingestion', ingestionRoutes);
 app.route('/api/graph', graphRoutes);
 app.route('/api/insights', insights);
+
+// Webhook routes (for receiving events from dooz-bridge)
+app.route('/webhooks/brain', brainWebhookRoutes);
 
 // =============================================================================
 // SERVER STARTUP
