@@ -53,6 +53,23 @@ export class DecisionService {
             }
         }
 
+        // Always emit to bridge for cross-app awareness
+        try {
+            const { BridgeClient, PmTopics } = await import('../lib/bridge');
+            BridgeClient.emit(PmTopics.DECISION_COMMITTED, {
+                decisionId: created.id,
+                intentId: input.intentId,
+                tenantId,
+                userId,
+                decisionStatement: input.decisionStatement,
+                finalChoice: input.finalChoice,
+                optionsConsidered: input.optionsConsidered,
+                timestamp: new Date().toISOString(),
+            }).catch(console.error);
+        } catch (e) {
+            // Bridge not available - non-blocking
+        }
+
         return created;
     }
 
