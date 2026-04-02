@@ -1,60 +1,25 @@
-import { useState } from 'react';
-import './index.css';
-import { IntentDashboard } from './pages/IntentDashboard';
-import './pages/IntentDashboard.css';
-import { ProposalReview } from './pages/ProposalReview';
-import './pages/ProposalReview.css';
-import { GraphPage } from './pages/GraphPage';
-import './pages/GraphPage.css';
-import './components/ContentUploader.css';
-import { Layout, Brain, Target, Network } from 'lucide-react';
-
-type Page = 'dashboard' | 'review' | 'graph';
+import { Routes, Route } from 'react-router'
+import Layout from './components/Layout'
+import Dashboard from './pages/Dashboard'
+import Intents from './pages/Intents'
+import IntentDetail from './pages/IntentDetail'
+import DecisionLedger from './pages/DecisionLedger'
+import Assumptions from './pages/Assumptions'
+import KnowledgeGraph from './pages/KnowledgeGraph'
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-
   return (
-    <div className="app">
-      {/* Navigation */}
-      <nav className="app-nav">
-        <div className="nav-brand">
-          <Layout size={20} />
-          <span>PM Suite</span>
-        </div>
-        <div className="nav-links">
-          <button
-            className={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('dashboard')}
-          >
-            <Target size={16} />
-            Intents
-          </button>
-          <button
-            className={`nav-link ${currentPage === 'review' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('review')}
-          >
-            <Brain size={16} />
-            AI Review
-          </button>
-          <button
-            className={`nav-link ${currentPage === 'graph' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('graph')}
-          >
-            <Network size={16} />
-            Graph
-          </button>
-        </div>
-      </nav>
-
-      {/* Page Content */}
-      <main className="app-content">
-        {currentPage === 'dashboard' && <IntentDashboard />}
-        {currentPage === 'review' && <ProposalReview />}
-        {currentPage === 'graph' && <GraphPage />}
-      </main>
-    </div>
-  );
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/intents" element={<Intents />} />
+        <Route path="/intents/:id" element={<IntentDetail />} />
+        <Route path="/intents/:id/decisions" element={<DecisionLedger />} />
+        <Route path="/intents/:id/assumptions" element={<Assumptions />} />
+        <Route path="/knowledge-graph" element={<KnowledgeGraph />} />
+      </Routes>
+    </Layout>
+  )
 }
 
-export default App;
+export default App
