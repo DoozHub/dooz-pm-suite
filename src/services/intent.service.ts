@@ -10,7 +10,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../db';
 import { intents, type Intent, type NewIntent } from '../db/schema';
 import type { CreateIntentInput, UpdateIntentInput, IntentState } from '../lib/types';
-import { BridgeClient, PmTopics } from '../lib/bridge';
+import { emitIntentCreated, emitIntentTransitioned } from '../lib/bridge';
 
 // State machine: valid transitions
 const VALID_TRANSITIONS: Record<IntentState, IntentState[]> = {
@@ -41,6 +41,9 @@ export class IntentService {
         };
 
         const [created] = await db.insert(intents).values(newIntent).returning();
+
+        emitIntentCreated(created.id, tenantId, 'research').catch(() => {});
+
         return created;
     }
 
@@ -124,16 +127,7 @@ export class IntentService {
             .where(and(eq(intents.id, id), eq(intents.tenantId, tenantId)))
             .returning();
 
-        // Emit event to dooz-bridge
-        BridgeClient.emit(PmTopics.INTENT_TRANSITIONED, {
-            intentId: id,
-            tenantId,
-            userId,
-            from: currentState,
-            to: newState,
-            title: updated.title,
-            timestamp: new Date().toISOString(),
-        }).catch(console.error);  // Fire and forget
+        emitIntentTransitioned(id, currentState, newState).catch(() => {});
 
         return { success: true, intent: updated };
     }

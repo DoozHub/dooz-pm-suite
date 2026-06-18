@@ -1,108 +1,47 @@
-/**
- * Dooz Bridge Client
- * 
- * HTTP client for publishing events to dooz-bridge.
- */
+import { BridgeClient, Topics } from "@doozhub/sdk-bridge"
+import type { BridgeEvent, BridgeEventHandler } from "@doozhub/sdk-bridge"
 
-const BRIDGE_URL = process.env.BRIDGE_URL || 'http://localhost:3001';
-const APP_ID = 'dooz-pm-suite';
+const BRIDGE_URL = process.env.BRIDGE_URL || "http://localhost:3001"
 
-export class BridgeClient {
-    /**
-     * Publish an event to the bridge
-     */
-    static async emit(topic: string, payload: Record<string, unknown>, correlationId?: string) {
-        try {
-            const response = await fetch(`${BRIDGE_URL}/api/events`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-App-Id': APP_ID,
-                },
-                body: JSON.stringify({
-                    topic,
-                    payload,
-                    correlationId,
-                }),
-            });
+let client: BridgeClient | null = null
 
-            if (!response.ok) {
-                const error = await response.text();
-                console.error(`[Bridge] Failed to emit ${topic}:`, error);
-                return false;
-            }
-
-            const result = await response.json();
-            console.log(`[Bridge] Emitted ${topic} → ${result.subscriberCount} subscribers`);
-            return true;
-        } catch (error) {
-            console.error(`[Bridge] Connection error for ${topic}:`, error);
-            return false;
-        }
-    }
-
-    /**
-     * Subscribe to a topic pattern
-     */
-    static async subscribe(topicPattern: string, webhookUrl?: string) {
-        try {
-            const response = await fetch(`${BRIDGE_URL}/api/subscriptions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    appId: APP_ID,
-                    topicPattern,
-                    webhookUrl,
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.text();
-                console.error(`[Bridge] Subscribe failed:`, error);
-                return null;
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`[Bridge] Connection error:`, error);
-            return null;
-        }
-    }
-
-    /**
-     * Poll for events matching subscriptions
-     */
-    static async poll(since?: string, limit = 50) {
-        try {
-            const params = new URLSearchParams();
-            if (since) params.set('since', since);
-            params.set('limit', String(limit));
-
-            const response = await fetch(`${BRIDGE_URL}/api/events?${params}`, {
-                headers: {
-                    'X-App-Id': APP_ID,
-                },
-            });
-
-            if (!response.ok) return [];
-
-            const result = await response.json();
-            return result.data || [];
-        } catch (error) {
-            console.error(`[Bridge] Poll error:`, error);
-            return [];
-        }
-    }
+export function getBridgeClient(): BridgeClient {
+  if (!client) {
+    client = new BridgeClient({
+      bridgeUrl: BRIDGE_URL,
+      appId: "dooz-pm-suite",
+      logLevel: "info",
+    })
+  }
+  return client
 }
 
-// Topic constants for PM Suite
-export const PmTopics = {
-    INTENT_CREATED: 'pm.intent.created',
-    INTENT_TRANSITIONED: 'pm.intent.transitioned',
-    DECISION_COMMITTED: 'pm.decision.committed',
-    TASK_COMPLETED: 'pm.task.completed',
-    ASSUMPTION_INVALIDATED: 'pm.assumption.invalidated',
-    RISK_TRIGGERED: 'pm.risk.triggered',
-} as const;
+export async function emitIntentCreated(intentId: string, scopeId: string, type: string): Promise<void> {
+  try {
+    await getBridgeClient().publish(Topics.PM_INTENT_CREATED, { intentId, scopeId, type }, intentId)
+  } catch {}
+}
+
+export async function emitIntentTransitioned(intentId: string, from: string, to: string): Promise<void> {
+  try {
+    await getBridgeClient().publish(Topics.PM_INTENT_TRANSITIONED, { intentId, from, to }, intentId)
+  } catch {}
+}
+
+export async function emitDecisionCommitted(decisionId: string, scopeId: string, domain: string): Promise<void> {
+  try {
+    await getBridgeClient().publish(Topics.PM_DECISION_COMMITTED, { decisionId, scopeId, domain }, decisionId)
+  } catch {}
+}
+
+export async function emitTaskCompleted(taskId: string, scopeId: string): Promise<void> {
+  try {
+    await getBridgeClient().publish(Topics.PM_TASK_COMPLETED, { taskId, scopeId }, taskId)
+  } catch {}
+}
+
+export function onBridgeEvent(topicPattern: string, handler: BridgeEventHandler): () => void {
+  return getBridgeClient().on(topicPattern, handler)
+}
+
+export { Topics as PmTopics }

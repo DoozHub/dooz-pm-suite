@@ -20,7 +20,7 @@ interface LogEntry {
     };
 }
 
-class Logger {
+export class Logger {
     private service: string;
     private minLevel: LogLevel;
     private correlationId?: string;
@@ -74,7 +74,7 @@ class Logger {
     }
 
     private output(entry: LogEntry): void {
-        const isProd = process.env.NODE_ENV === 'production';
+        const isProd = process.env['NODE_ENV'] === 'production';
 
         if (isProd) {
             // JSON for production (structured logging for log aggregators)
@@ -138,7 +138,7 @@ class Logger {
 
 // Factory function
 export function createLogger(service: string, minLevel?: LogLevel): Logger {
-    const level = (process.env.LOG_LEVEL as LogLevel) || minLevel || 'info';
+    const level = (process.env['LOG_LEVEL'] as LogLevel) || minLevel || 'info';
     return new Logger(service, level);
 }
 

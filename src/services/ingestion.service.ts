@@ -12,7 +12,7 @@ import { aiProposals, type AiProposal } from '../db/schema';
 import type { IngestionRequest, ProposalType } from '../lib/types';
 import { getRouter } from '../ai';
 import { PROMPTS } from '../ai/prompts/extraction';
-import type { LlmRouter } from '@dooz/ai-router';
+import type { LlmRouter } from '@doozhub/ai-router';
 
 interface Extraction {
     type: ProposalType;
@@ -48,6 +48,12 @@ export class IngestionService {
                 ],
                 systemPrompt: PROMPTS.extraction_v1.system,
                 taskType: 'extraction',
+                metadata: {
+                    service: 'cloud-pm-suite',
+                    tenantId,
+                    userId,
+                    traceId: input.traceId,
+                },
             });
 
             // Parse extractions

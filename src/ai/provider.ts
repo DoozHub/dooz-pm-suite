@@ -18,6 +18,12 @@ export interface CompletionRequest {
     context?: string;
     maxTokens?: number;
     temperature?: number;
+    /** Tenant scope, propagated to ai.usage.recorded bridge event. */
+    tenantId?: string;
+    /** End-user, propagated to ai.usage.recorded bridge event. */
+    userId?: string;
+    /** Distributed trace id. */
+    traceId?: string;
 }
 
 export interface CompletionResponse {

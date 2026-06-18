@@ -101,10 +101,10 @@ export class IntentHealthService {
             .from(risks)
             .where(eq(risks.intentId, intentId));
 
-        const highRisks = allRisks.filter(r =>
+        const highRisks = allRisks.filter((r: typeof allRisks[0]) =>
             r.severity === 'critical' || r.severity === 'high'
         );
-        const unmitigatedHighRisks = highRisks.filter(r => !r.mitigationNotes);
+        const unmitigatedHighRisks = highRisks.filter((r: typeof highRisks[0]) => !r.mitigationNotes);
 
         let risksScore = 100;
         if (unmitigatedHighRisks.length > 2) {
@@ -123,7 +123,7 @@ export class IntentHealthService {
             .from(tasks)
             .where(eq(tasks.intentId, intentId));
 
-        const completedTasks = allTasks.filter(t => t.status === 'completed').length;
+        const completedTasks = allTasks.filter((t: typeof allTasks[0]) => t.status === 'completed').length;
         const tasksScore = allTasks.length === 0
             ? 100
             : Math.round((completedTasks / allTasks.length) * 100);

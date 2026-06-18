@@ -42,6 +42,12 @@ export class StandaloneProvider implements AiProvider {
             messages,
             maxTokens: request.maxTokens,
             temperature: request.temperature,
+            metadata: {
+                service: 'cloud-pm-suite',
+                tenantId: request.tenantId,
+                userId: request.userId,
+                traceId: request.traceId,
+            },
         });
 
         return {

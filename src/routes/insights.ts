@@ -8,13 +8,10 @@ import { Hono } from 'hono';
 import { AssumptionMonitor } from '../services/assumption-monitor';
 import { IntentHealthService } from '../services/intent-health';
 import { InsightsService } from '../services/insights';
+import { HindsightLifecycle } from '../services/hindsight-lifecycle';
 
 const insights = new Hono();
 
-/**
- * GET /api/insights/health/:intentId
- * Get health score for an intent
- */
 insights.get('/health/:intentId', async (c) => {
     const intentId = c.req.param('intentId');
 
@@ -27,10 +24,6 @@ insights.get('/health/:intentId', async (c) => {
     }
 });
 
-/**
- * GET /api/insights/health
- * Get health scores for all intents (requires tenantId query param)
- */
 insights.get('/health', async (c) => {
     const tenantId = c.req.query('tenantId') || 'default';
 
@@ -43,10 +36,6 @@ insights.get('/health', async (c) => {
     }
 });
 
-/**
- * GET /api/insights/assumptions
- * Check all assumptions for decay
- */
 insights.get('/assumptions', async (c) => {
     try {
         const result = await AssumptionMonitor.checkForDecay();
@@ -57,10 +46,6 @@ insights.get('/assumptions', async (c) => {
     }
 });
 
-/**
- * GET /api/insights/assumptions/:intentId
- * Check assumptions for a specific intent
- */
 insights.get('/assumptions/:intentId', async (c) => {
     const intentId = c.req.param('intentId');
 
@@ -73,10 +58,6 @@ insights.get('/assumptions/:intentId', async (c) => {
     }
 });
 
-/**
- * POST /api/insights/assumptions/:id/invalidate
- * Mark an assumption as invalidated
- */
 insights.post('/assumptions/:id/invalidate', async (c) => {
     const assumptionId = c.req.param('id');
 
@@ -89,10 +70,51 @@ insights.post('/assumptions/:id/invalidate', async (c) => {
     }
 });
 
-/**
- * GET /api/insights/:intentId
- * Get AI-powered insights for an intent
- */
+insights.post('/generate', async (c) => {
+    const tenantId = c.req.query('tenantId') || 'default';
+    const intentId = c.req.query('intentId');
+
+    try {
+        if (intentId) {
+            const result = await InsightsService.getIntentInsights(intentId, tenantId);
+            return c.json(result);
+        }
+
+        const allHealth = await IntentHealthService.getAllHealth(tenantId);
+        const lowHealthIntents = allHealth.filter((h: any) => h.score < 0.6);
+
+        const allInsights = [];
+        for (const health of lowHealthIntents.slice(0, 10)) {
+            try {
+                const result = await InsightsService.getIntentInsights(health.intentId, tenantId);
+                allInsights.push(...result.insights);
+            } catch {}
+        }
+
+        const decayResult = await AssumptionMonitor.checkForDecay(tenantId);
+
+        return c.json({
+            insights: allInsights,
+            assumptionAlerts: decayResult.alerts,
+            totalChecked: decayResult.totalChecked,
+            generatedAt: new Date().toISOString(),
+        });
+    } catch (e) {
+        console.error('[Route] Generate insights failed:', e);
+        return c.json({ error: 'Failed to generate insights' }, 500);
+    }
+});
+
+insights.post('/hindsight/start', async (c) => {
+    HindsightLifecycle.start();
+    return c.json({ status: 'started', message: 'Hindsight lifecycle listening to bridge events' });
+});
+
+insights.post('/hindsight/stop', async (c) => {
+    HindsightLifecycle.stop();
+    return c.json({ status: 'stopped' });
+});
+
 insights.get('/:intentId', async (c) => {
     const intentId = c.req.param('intentId');
     const tenantId = c.req.query('tenantId') || 'default';

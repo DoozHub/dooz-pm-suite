@@ -175,7 +175,7 @@ Provide 2-3 actionable insights in JSON format:
             .from(risks)
             .where(eq(risks.intentId, intentId));
 
-        const unmitigated = risksList.filter(r =>
+        const unmitigated = risksList.filter((r: typeof risksList[0]) =>
             (r.severity === 'high' || r.severity === 'critical') && !r.mitigationNotes
         );
 

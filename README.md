@@ -1,5 +1,8 @@
 # Dooz PM Suite
 
+[![CI](https://github.com/DoozHub/dooz-ecosystem/actions/workflows/dooz-pm-suite-ci.yml/badge.svg)](https://github.com/DoozHub/dooz-ecosystem/actions/workflows/dooz-pm-suite-ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 dooz-pm-suite is a Bun + Hono API server that provides a project management backend centered on intents (purpose-driven artifacts) rather than tasks. It exposes REST endpoints for managing intents with state transitions, an append-only decision ledger, assumptions, risks, tasks, and a knowledge graph. The server uses Drizzle ORM with SQLite (development) or PostgreSQL (production) and optionally integrates with the Dooz SDK for tenant context.
 
 ---
