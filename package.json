@@ -16,9 +16,7 @@
     },
     "dependencies": {
         "@doozhub/ai-router": "file:../lib-ai-router",
-        "@doozhub/sdk-auth": "file:../lib-sdk-auth",
         "@doozhub/sdk-bridge": "file:../lib-sdk-bridge",
-        "better-sqlite3": "^11.0.0",
         "drizzle-orm": "^0.45.2",
         "hono": "^4.12.26",
         "nanoid": "^5.0.0",
@@ -26,7 +24,6 @@
         "zod": "^3.23.0"
     },
     "devDependencies": {
-        "@types/better-sqlite3": "^7.6.0",
         "@types/bun": "latest",
         "drizzle-kit": "^0.30.0",
         "typescript": "^5.6.0",
