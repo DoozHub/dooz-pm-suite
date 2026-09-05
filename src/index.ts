@@ -22,7 +22,7 @@ import { tasksRoutes } from './routes/tasks';
 import { edgesRoutes } from './routes/edges';
 import { insights } from './routes/insights';
 import { brainWebhookRoutes } from './routes/brain-webhook';
-import { sdkContext, isSdkConfigured } from './middleware/sdk';
+import { sdkContextMiddleware, isSdkConfigured } from './middleware/sdk';
 import type { Tenant } from './lib/sdk-types';
 import { metrics } from './lib/metrics';
 import { getOpenApiSpec } from './lib/openapi';
@@ -65,7 +65,7 @@ app.use('*', cors({
     credentials: true,
 }));
 
-app.use('/api/*', sdkContext());
+app.use('/api/*', sdkContextMiddleware);
 
 if (isSdkConfigured()) {
     app.use('/api/*', async (c, next) => {
@@ -76,6 +76,15 @@ if (isSdkConfigured()) {
         await next();
     });
 }
+
+// Tenant/user context: headers when present, single-tenant dev defaults
+// otherwise. Multi-tenant resolution wires in when dooz-core SDK auth is
+// enabled (routes read c.get('tenantId')/c.get('userId')).
+app.use('/api/*', async (c, next) => {
+    c.set('tenantId', c.req.header('X-Tenant-ID') ?? 'default-tenant');
+    c.set('userId', c.req.header('X-User-Id') ?? 'system');
+    await next();
+});
 
 // Rate limiting
 app.use('/api/*', rateLimitMiddleware());

@@ -72,6 +72,10 @@ declare module 'hono' {
     }
 }
 
+export function isSdkConfigured(): boolean {
+    return getClient() !== null;
+}
+
 export const sdkContextMiddleware: MiddlewareHandler = async (c, next) => {
     const client = getClient() ?? undefined;
     c.set('dooz', client);
