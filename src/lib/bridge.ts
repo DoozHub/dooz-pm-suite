@@ -10,6 +10,9 @@ export function getBridgeClient(): BridgeClient {
     client = new BridgeClient({
       bridgeUrl: BRIDGE_URL,
       appId: "dooz-pm-suite",
+      // Sign webhook deliveries when the bridge has WEBHOOK_SECRET set;
+      // unsigned when unset (dev bridges reject signed-only in production).
+      webhookSecret: process.env.WEBHOOK_SECRET,
       logLevel: "info",
     })
   }
